@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify to Apple Music Track Mapper</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        spotify: '#1DB954',
+                        apple: '#FA243C'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #5D5CDE 0%, #8B5CF6 100%);
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            transition: transform 0.2s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-200">
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="gradient-bg py-8">
+            <div class="container mx-auto px-4">
+                <h1 class="text-4xl font-bold text-white text-center mb-2">
+                    🎵 Track Mapper
+                </h1>
+                <p class="text-white/90 text-center text-lg">
+                    Map your Spotify tracks to Apple Music with precision
+                </p>
+            </div>
+        </header>
+
+
+
+
+        <!-- Main Content -->
+        <div class="container mx-auto px-4 py-8 max-w-4xl">
+            <!-- Input Section -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-semibold mb-4 flex items-center">
+                    <span class="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white text-sm mr-3">1</span>
+                    Input Track Information
+                </h2>
+                
+                <div class="space-y-4">
+                    <!-- Tab Selection -->
+                    <div class="flex space-x-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+                        <button id="tab-single" class="tab-btn flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors active">
+                            Single Track
+                        </button>
+                        <button id="tab-playlist" class="tab-btn flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors">
+                            Spotify Playlist
+                        </button>
+                        <button id="tab-batch" class="tab-btn flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors">
+                            Batch Input
+                        </button>
+                    </div>
+
+
+
+
+                    <!-- Single Track Tab -->
+                    <div id="single-track-content" class="tab-content">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Track Name *</label>
+                                <input type="text" id="track-name" placeholder="e.g., Blinding Lights" 
+                                       class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 text-base">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Artist Name *</label>
+                                <input type="text" id="artist-name" placeholder="e.g., The Weeknd" 
+                                       class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 text-base">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Album Name</label>
+                                <input type="text" id="album-name" placeholder="e.g., After Hours" 
+                                       class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 text-base">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Duration (optional)</label>
+                                <input type="text" id="duration" placeholder="e.g., 3:20 or 200000ms" 
+                                       class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 text-base">
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+                    <!-- Playlist Tab -->
+                    <div id="playlist-content" class="tab-content hidden">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Spotify Playlist URL</label>
+                            <input type="url" id="playlist-url" placeholder="https://open.spotify.com/playlist/..." 
+                                   class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 text-base">
+                            <p class="text-sm text-green-600 dark:text-green-400 mt-2 flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                ✅ Spotify API authentication configured - Ready to process playlists!
+                            </p>
+                        </div>
+                    </div>
+
+
+
+
+                    <!-- Batch Tab -->
+                    <div id="batch-content" class="tab-content hidden">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Track List</label>
+                            <textarea id="batch-tracks" rows="8" placeholder="Enter tracks, one per line:&#10;Track Name - Artist Name&#10;Blinding Lights - The Weeknd&#10;Shape of You - Ed Sheeran&#10;..." 
+                                      class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 text-base resize-vertical"></textarea>
+                        </div>
+                    </div>
+
+
+
+
+                    <!-- Search Button -->
+                    <button id="search-btn" class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span id="search-text">🔍 Find Apple Music Matches</span>
+                        <span id="search-loading" class="hidden">
+                            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Searching...
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+
+
+
+            <!-- Results Section -->
+            <div id="results-section" class="hidden">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                    <h2 class="text-2xl font-semibold mb-4 flex items-center">
+                        <span class="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white text-sm mr-3">2</span>
+                        Mapping Results
+                    </h2>
+                    
+                    <!-- Results Summary -->
+                    <div id="results-summary" class="mb-6"></div>
+                    
+                    <!-- Results List -->
+                    <div id="results-list" class="space-y-4"></div>
+                    
+                    <!-- Export Options -->
+                    <div id="export-section" class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                        <h3 class="text-lg font-medium mb-3">Export Results</h3>
+                        <div class="flex flex-wrap gap-3">
+                            <button id="export-json" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
+                                📄 Export JSON
+                            </button>
+                            <button id="export-csv" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+                                📊 Export CSV
+                            </button>
+                            <button id="export-txt" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                                📝 Export TXT
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+
+            <!-- Instructions -->
+            <div class="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-6 mt-8">
+                <h3 class="text-lg font-semibold mb-3 text-blue-900 dark:text-blue-100">
+                    📖 How It Works
+                </h3>
+                <div class="text-blue-800 dark:text-blue-200 space-y-2">
+                    <p><strong>1. Enter Track Info:</strong> Provide track name and artist (required). Album and duration help improve matching accuracy.</p>
+                    <p><strong>2. AI-Powered Search:</strong> Our system uses advanced AI to search Apple Music's catalog and find the best matches.</p>
+                    <p><strong>3. Smart Matching:</strong> Tracks are matched using multiple criteria including ISRC codes, track names, artists, and duration.</p>
+                    <p><strong>4. Export Results:</strong> Download your mapping results in JSON, CSV, or text format.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <script>
+        // Dark mode detection
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+
+
+
+        // Tab functionality
+        const tabs = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+
+
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.id.replace('tab-', '');
+                
+                // Update tab buttons
+                tabs.forEach(t => t.classList.remove('active', 'bg-white', 'dark:bg-gray-800', 'text-primary'));
+                tab.classList.add('active', 'bg-white', 'dark:bg-gray-800', 'text-primary');
+                
+                // Update tab content
+                tabContents.forEach(content => content.classList.add('hidden'));
+                document.getElementById(`${tabId}-${tabId === 'single' ? 'track-' : ''}content`).classList.remove('hidden');
+            });
+        });
+
+
+
+
+        // Initialize first tab
+        document.getElementById('tab-single').classList.add('bg-white', 'dark:bg-gray-800', 'text-primary');
+
+
+
+
+        // Global variables
+        let mappingResults = [];
+        const SPOTIFY_API_KEY = 'c5f43b5d28ff425096070c6a71ab3250'; // Your authentication key
+
+
+
+
+        // Register Poe handler for track mapping
+        if (window.Poe) {
+            window.Poe.registerHandler("track-mapper", (result, context) => {
+                const msg = result.responses[0];
+                
+                if (msg.status === "error") {
+                    showError("Error during mapping: " + msg.statusText);
+                    setSearchState(false);
+                } else if (msg.status === "incomplete") {
+                    // Show streaming results if any
+                    if (msg.content.trim()) {
+                        updateStreamingResults(msg.content);
+                    }
+                } else if (msg.status === "complete") {
+                    processMappingResults(msg.content);
+                    setSearchState(false);
+                }
+            });
+
+
+
+
+            // Register handler for Spotify authentication
+            window.Poe.registerHandler("spotify-auth", (result, context) => {
+                const msg = result.responses[0];
+                if (msg.status === "complete") {
+                    handleSpotifyAuthResult(msg.content);
+                }
+            });
+
+
+
+
+            // Register handler for playlist extraction
+            window.Poe.registerHandler("playlist-extractor", (result, context) => {
+                const msg = result.responses[0];
+                if (msg.status === "complete") {
+                    handlePlaylistData(msg.content);
+                } else if (msg.status === "incomplete") {
+                    updatePlaylistProgress(msg.content);
+                }
+            });
+        }
+
+
+
+
+        // Search functionality
+        document.getElementById('search-btn').addEventListener('click', async () => {
+            const activeTab = document.querySelector('.tab-btn.active').id.replace('tab-', '');
+            
+            if (activeTab === 'single') {
+                await searchSingleTrack();
+            } else if (activeTab === 'playlist') {
+                await searchPlaylist();
+            } else if (activeTab === 'batch') {
+                await searchBatchTracks();
+            }
+        });
+
+
+
+
+        async function searchSingleTrack() {
+            const trackName = document.getElementById('track-name').value.trim();
+            const artistName = document.getElementById('artist-name').value.trim();
+            const albumName = document.getElementById('album-name').value.trim();
+            const duration = document.getElementById('duration').value.trim();
+
+
+
+
+            if (!trackName || !artistName) {
+                showError("Please enter both track name and artist name.");
+                return;
+            }
+
+
+
+
+            setSearchState(true);
+            hideError();
+
+
+
+
+            const trackData = {
+                name: trackName,
+                artist: artistName,
+                album: albumName,
+                duration: duration
+            };
+
+
+
+
+            const prompt = `@Claude-Sonnet-4 You are a music track mapper. Search for Apple Music matches for the following Spotify track information. Use the Apple Music API search to find the best match based on track name, artist, album, and duration.
+
+
+
+
+Track Information:
+- Name: ${trackName}
+- Artist: ${artistName}
+- Album: ${albumName || 'Not specified'}
+- Duration: ${duration || 'Not specified'}
+
+
+
+
+Please search Apple Music for this track and return ONLY a JSON response in this exact format (no explanations, no markdown formatting):
+
+
+
+
+{
+  "success": true,
+  "query": {
+    "name": "${trackName}",
+    "artist": "${artistName}",
+    "album": "${albumName || ''}",
+    "duration": "${duration || ''}"
+  },
+  "matches": [
+    {
+      "name": "exact track name from Apple Music",
+      "artist": "exact artist name from Apple Music",
+      "album": "exact album name from Apple Music",
+      "duration": "duration in milliseconds",
+      "isrc": "ISRC code if available",
+      "appleId": "Apple Music track ID",
+      "confidence": 95,
+      "matchFactors": ["name", "artist", "album"]
+    }
+  ]
+}
+
+
+
+
+If no matches found, return: {"success": false, "error": "No matches found", "query": {...}}`;
+
+
+
+
+            try {
+                await window.Poe.sendUserMessage(prompt, {
+                    handler: "track-mapper",
+                    stream: true,
+                    openChat: false
+                });
+            } catch (err) {
+                showError("Error starting search: " + err.message);
+                setSearchState(false);
+            }
+        }
+
+
+
+
+        async function searchPlaylist() {
+            const playlistUrl = document.getElementById('playlist-url').value.trim();
+            
+            if (!playlistUrl) {
+                showError("Please enter a Spotify playlist URL.");
+                return;
+            }
+
+
+
+
+            setSearchState(true);
+            hideError();
+
+
+
+
+            const prompt = `@Claude-Sonnet-4 You are a music track mapper with Spotify API access. Extract tracks from the following Spotify playlist URL and then map each track to Apple Music.
+
+
+
+
+Playlist URL: ${playlistUrl}
+Spotify API Access Token: ${SPOTIFY_API_KEY}
+
+
+
+
+Please:
+1. Extract the playlist ID from the URL: ${playlistUrl}
+2. Use the provided Spotify API access token to fetch tracks from the playlist
+3. For each track, search Apple Music for matches using fuzzy matching on track name, artist, album, and duration
+4. Return detailed mapping results in JSON format
+
+
+
+
+Use these Spotify API endpoints:
+- GET https://api.spotify.com/v1/playlists/{playlist_id}/tracks
+- Authorization: Bearer ${SPOTIFY_API_KEY}
+
+
+
+
+For Apple Music search, use the Apple Music API search endpoint:
+- GET https://api.music.apple.com/v1/catalog/us/search
+
+
+
+
+Return ONLY a JSON response in this exact format (no explanations, no markdown formatting):
+
+
+
+
+{
+  "success": true,
+  "playlistUrl": "${playlistUrl}",
+  "totalTracks": 10,
+  "mappedTracks": 8,
+  "results": [
+    {
+      "spotify": {
+        "name": "track name",
+        "artist": "artist name",
+        "album": "album name",
+        "duration": "duration in ms"
+      },
+      "appleMusic": {
+        "name": "matched track name",
+        "artist": "matched artist name",
+        "album": "matched album name",
+        "duration": "duration in ms",
+        "appleId": "Apple Music ID",
+        "confidence": 95
+      }
+    }
+  ]
+}`;
+
+
+
+
+            try {
+                await window.Poe.sendUserMessage(prompt, {
+                    handler: "track-mapper",
+                    stream: true,
+                    openChat: false
+                });
+            } catch (err) {
+                showError("Error starting playlist search: " + err.message);
+                setSearchState(false);
+            }
+        }
+
+
+
+
+        async function searchBatchTracks() {
+            const batchText = document.getElementById('batch-tracks').value.trim();
+            
+            if (!batchText) {
+                showError("Please enter track information in the batch input area.");
+                return;
+            }
+
+
+
+
+            setSearchState(true);
+            hideError();
+
+
+
+
+            const prompt = `@Claude-Sonnet-4 You are a music track mapper. Parse the following track list and map each track to Apple Music. Each line contains track information in format "Track Name - Artist Name" or similar variations.
+
+
+
+
+Track List:
+${batchText}
+
+
+
+
+Please:
+1. Parse each line to extract track name and artist name
+2. Search Apple Music for each track
+3. Return mapping results in JSON format
+
+
+
+
+Return ONLY a JSON response in this exact format (no explanations, no markdown formatting):
+
+
+
+
+{
+  "success": true,
+  "totalTracks": 5,
+  "mappedTracks": 4,
+  "results": [
+    {
+      "input": "original input line",
+      "parsed": {
+        "name": "parsed track name",
+        "artist": "parsed artist name"
+      },
+      "appleMusic": {
+        "name": "matched track name",
+        "artist": "matched artist name",
+        "album": "matched album name",
+        "duration": "duration in ms",
+        "appleId": "Apple Music ID",
+        "confidence": 90
+      }
+    }
+  ]
+}`;
+
+
+
+
+            try {
+                await window.Poe.sendUserMessage(prompt, {
+                    handler: "track-mapper",
+                    stream: true,
+                    openChat: false
+                });
+            } catch (err) {
+                showError("Error starting batch search: " + err.message);
+                setSearchState(false);
+            }
+        }
+
+
+
+
+        function updateStreamingResults(content) {
+            // Show partial results during streaming
+            const resultsSection = document.getElementById('results-section');
+            const resultsList = document.getElementById('results-list');
+            
+            resultsSection.classList.remove('hidden');
+            resultsList.innerHTML = `
+                <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span class="text-blue-800 dark:text-blue-200">Searching Apple Music catalog...</span>
+                    </div>
+                    <div class="mt-2 text-sm text-blue-600 dark:text-blue-300">
+                        ${content.length > 200 ? content.substring(0, 200) + '...' : content}
+                    </div>
+                </div>
+            `;
+        }
+
+
+
+
+        function processMappingResults(content) {
+            try {
+                // Try to extract JSON from the response
+                let jsonStr = content;
+                
+                // Remove markdown code blocks if present
+                jsonStr = jsonStr.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+                
+                // Try to find JSON within the text
+                const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    jsonStr = jsonMatch[0];
+                }
+                
+                const results = JSON.parse(jsonStr);
+                mappingResults = results;
+                displayResults(results);
+            } catch (error) {
+                console.error('Error parsing results:', error);
+                // Fallback: display raw content as text
+                displayTextResults(content);
+            }
+        }
+
+
+
+
+        function displayResults(results) {
+            const resultsSection = document.getElementById('results-section');
+            const resultsSummary = document.getElementById('results-summary');
+            const resultsList = document.getElementById('results-list');
+            
+            resultsSection.classList.remove('hidden');
+
+
+
+
+            if (!results.success) {
+                resultsSummary.innerHTML = `
+                    <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                        <div class="flex">
+                            <div class="text-red-600 dark:text-red-400">
+                                ❌ No matches found: ${results.error || 'Unknown error'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                resultsList.innerHTML = '';
+                return;
+            }
+
+
+
+
+            // Display summary
+            const totalTracks = results.totalTracks || (results.results ? results.results.length : (results.matches ? 1 : 0));
+            const mappedTracks = results.mappedTracks || (results.matches ? 1 : (results.results ? results.results.filter(r => r.appleMusic).length : 0));
+            
+            resultsSummary.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-green-600 dark:text-green-400">${totalTracks}</div>
+                        <div class="text-sm text-green-800 dark:text-green-200">Total Tracks</div>
+                    </div>
+                    <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">${mappedTracks}</div>
+                        <div class="text-sm text-blue-800 dark:text-blue-200">Successful Matches</div>
+                    </div>
+                    <div class="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-purple-600 dark:text-purple-400">${Math.round((mappedTracks / totalTracks) * 100)}%</div>
+                        <div class="text-sm text-purple-800 dark:text-purple-200">Match Rate</div>
+                    </div>
+                </div>
+            `;
+
+
+
+
+            // Display individual results
+            let resultsHtml = '';
+            
+            if (results.matches) {
+                // Single track result
+                results.matches.forEach(match => {
+                    resultsHtml += createResultCard(results.query, match);
+                });
+            } else if (results.results) {
+                // Multiple tracks result
+                results.results.forEach(result => {
+                    if (result.appleMusic) {
+                        resultsHtml += createResultCard(result.spotify || result.parsed, result.appleMusic);
+                    } else {
+                        resultsHtml += createNoMatchCard(result.spotify || result.parsed || result.input);
+                    }
+                });
+            }
+            
+            resultsList.innerHTML = resultsHtml;
+        }
+
+
+
+
+        function createResultCard(spotifyTrack, appleMatch) {
+            const confidence = appleMatch.confidence || 85;
+            const confidenceColor = confidence >= 90 ? 'green' : confidence >= 70 ? 'yellow' : 'red';
+            
+            return `
+                <div class="card-hover bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-lg">${spotifyTrack.name}</h3>
+                            <p class="text-gray-600 dark:text-gray-400">${spotifyTrack.artist}</p>
+                            ${spotifyTrack.album ? `<p class="text-sm text-gray-500 dark:text-gray-500">${spotifyTrack.album}</p>` : ''}
+                        </div>
+                        <div class="text-right">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-${confidenceColor}-100 dark:bg-${confidenceColor}-900/20 text-${confidenceColor}-800 dark:text-${confidenceColor}-200">
+                                ${confidence}% match
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-center py-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-spotify rounded-full flex items-center justify-center">
+                                <span class="text-white text-xs">S</span>
+                            </div>
+                            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                            </svg>
+                            <div class="w-8 h-8 bg-apple rounded-full flex items-center justify-center">
+                                <span class="text-white text-xs">A</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                        <h4 class="font-medium text-apple mb-2">Apple Music Match</h4>
+                        <div class="space-y-1 text-sm">
+                            <div><strong>Track:</strong> ${appleMatch.name}</div>
+                            <div><strong>Artist:</strong> ${appleMatch.artist}</div>
+                            ${appleMatch.album ? `<div><strong>Album:</strong> ${appleMatch.album}</div>` : ''}
+                            ${appleMatch.duration ? `<div><strong>Duration:</strong> ${formatDuration(appleMatch.duration)}</div>` : ''}
+                            ${appleMatch.isrc ? `<div><strong>ISRC:</strong> ${appleMatch.isrc}</div>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+
+
+
+        function createNoMatchCard(track) {
+            const trackName = typeof track === 'string' ? track : (track.name || 'Unknown Track');
+            const artistName = typeof track === 'string' ? '' : (track.artist || '');
+            
+            return `
+                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 opacity-75">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-semibold text-lg">${trackName}</h3>
+                            ${artistName ? `<p class="text-gray-600 dark:text-gray-400">${artistName}</p>` : ''}
+                        </div>
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+                            No match found
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
+
+
+
+
+        function displayTextResults(content) {
+            const resultsSection = document.getElementById('results-section');
+            const resultsList = document.getElementById('results-list');
+            
+            resultsSection.classList.remove('hidden');
+            resultsList.innerHTML = `
+                <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                    <h3 class="font-medium mb-2">Search Results:</h3>
+                    <div class="whitespace-pre-wrap text-sm">${content}</div>
+                </div>
+            `;
+        }
+
+
+
+
+        function formatDuration(duration) {
+            if (!duration) return '';
+            
+            let ms = parseInt(duration);
+            if (isNaN(ms)) return duration;
+            
+            const seconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            
+            return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+
+
+
+        function setSearchState(searching) {
+            const btn = document.getElementById('search-btn');
+            const searchText = document.getElementById('search-text');
+            const searchLoading = document.getElementById('search-loading');
+            
+            btn.disabled = searching;
+            
+            if (searching) {
+                searchText.classList.add('hidden');
+                searchLoading.classList.remove('hidden');
+            } else {
+                searchText.classList.remove('hidden');
+                searchLoading.classList.add('hidden');
+            }
+        }
+
+
+
+
+        function showError(message) {
+            let errorDiv = document.getElementById('error-message');
+            if (!errorDiv) {
+                errorDiv = document.createElement('div');
+                errorDiv.id = 'error-message';
+                document.querySelector('.container').insertBefore(errorDiv, document.querySelector('.container').firstChild.nextSibling);
+            }
+            
+            errorDiv.innerHTML = `
+                <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-red-800 dark:text-red-200">${message}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+
+
+
+        function hideError() {
+            const errorDiv = document.getElementById('error-message');
+            if (errorDiv) {
+                errorDiv.remove();
+            }
+        }
+
+
+
+
+        // Advanced handler functions
+        function handleSpotifyAuthResult(content) {
+            try {
+                const authData = JSON.parse(content);
+                if (authData.success) {
+                    showSuccess("Spotify authentication successful! Proceeding with playlist extraction...");
+                    // Continue with playlist extraction
+                } else {
+                    showError("Spotify authentication failed: " + authData.error);
+                }
+            } catch (error) {
+                showError("Error processing authentication: " + error.message);
+            }
+        }
+
+
+
+
+        function handlePlaylistData(content) {
+            try {
+                const playlistData = JSON.parse(content);
+                if (playlistData.success && playlistData.tracks) {
+                    // Process playlist tracks and search Apple Music
+                    searchAppleMusicForTracks(playlistData.tracks);
+                } else {
+                    showError("Failed to extract playlist data: " + playlistData.error);
+                }
+            } catch (error) {
+                showError("Error processing playlist data: " + error.message);
+            }
+        }
+
+
+
+
+        function updatePlaylistProgress(content) {
+            const progressDiv = document.getElementById('playlist-progress');
+            if (!progressDiv) {
+                const container = document.querySelector('.container');
+                const progressElement = document.createElement('div');
+                progressElement.id = 'playlist-progress';
+                container.appendChild(progressElement);
+            }
+            
+            document.getElementById('playlist-progress').innerHTML = `
+                <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mb-4">
+                    <div class="flex items-center">
+                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span class="text-blue-800 dark:text-blue-200">Processing playlist...</span>
+                    </div>
+                    <div class="mt-2 text-sm text-blue-600 dark:text-blue-300">
+                        ${content.length > 200 ? content.substring(0, 200) + '...' : content}
+                    </div>
+                </div>
+            `;
+        }
+
+
+
+
+        async function searchAppleMusicForTracks(tracks) {
+            // Batch process tracks to search Apple Music
+            const batchSize = 5;
+            let processedTracks = [];
+            
+            for (let i = 0; i < tracks.length; i += batchSize) {
+                const batch = tracks.slice(i, i + batchSize);
+                const batchPrompt = `@Claude-Sonnet-4 Search Apple Music for the following tracks and return mapping results:
+
+
+
+
+${batch.map((track, index) => `${i + index + 1}. ${track.name} - ${track.artist} (Album: ${track.album || 'Unknown'})`).join('\n')}
+
+
+
+
+Return ONLY JSON in this format:
+{
+  "success": true,
+  "results": [
+    {
+      "spotify": {"name": "", "artist": "", "album": ""},
+      "appleMusic": {"name": "", "artist": "", "album": "", "confidence": 90}
+    }
+  ]
+}`;
+
+
+
+
+                try {
+                    await window.Poe.sendUserMessage(batchPrompt, {
+                        handler: "track-mapper",
+                        stream: false,
+                        openChat: false
+                    });
+                    
+                    // Add small delay between batches
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                } catch (err) {
+                    console.error("Error processing batch:", err);
+                }
+            }
+        }
+
+
+
+
+        function showSuccess(message) {
+            let successDiv = document.getElementById('success-message');
+            if (!successDiv) {
+                successDiv = document.createElement('div');
+                successDiv.id = 'success-message';
+                document.querySelector('.container').insertBefore(successDiv, document.querySelector('.container').firstChild.nextSibling);
+            }
+            
+            successDiv.innerHTML = `
+                <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-green-800 dark:text-green-200">${message}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Auto-hide success message after 5 seconds
+            setTimeout(() => {
+                if (successDiv) {
+                    successDiv.remove();
+                }
+            }, 5000);
+        }
+
+
+
+
+        // Advanced matching functions
+        function calculateMatchConfidence(spotifyTrack, appleMusicTrack) {
+            let confidence = 0;
+            
+            // ISRC match (highest priority)
+            if (spotifyTrack.isrc && appleMusicTrack.isrc && spotifyTrack.isrc === appleMusicTrack.isrc) {
+                return 100;
+            }
+            
+            // Track name similarity
+            const nameMatch = calculateStringSimilarity(spotifyTrack.name.toLowerCase(), appleMusicTrack.name.toLowerCase());
+            confidence += nameMatch * 40;
+            
+            // Artist name similarity
+            const artistMatch = calculateStringSimilarity(spotifyTrack.artist.toLowerCase(), appleMusicTrack.artist.toLowerCase());
+            confidence += artistMatch * 35;
+            
+            // Album name similarity (if available)
+            if (spotifyTrack.album && appleMusicTrack.album) {
+                const albumMatch = calculateStringSimilarity(spotifyTrack.album.toLowerCase(), appleMusicTrack.album.toLowerCase());
+                confidence += albumMatch * 15;
+            } else {
+                confidence += 15; // Bonus for having one album
+            }
+            
+            // Duration similarity (if available)
+            if (spotifyTrack.duration && appleMusicTrack.duration) {
+                const spotifyMs = parseDuration(spotifyTrack.duration);
+                const appleMs = parseDuration(appleMusicTrack.duration);
+                if (spotifyMs && appleMs) {
+                    const durationDiff = Math.abs(spotifyMs - appleMs);
+                    const durationMatch = Math.max(0, 1 - (durationDiff / 10000)); // 10 second tolerance
+                    confidence += durationMatch * 10;
+                }
+            }
+            
+            return Math.round(Math.min(confidence, 100));
+        }
+
+
+
+
+        function calculateStringSimilarity(str1, str2) {
+            // Simple Levenshtein distance-based similarity
+            const maxLength = Math.max(str1.length, str2.length);
+            if (maxLength === 0) return 1;
+            
+            const distance = levenshteinDistance(str1, str2);
+            return (maxLength - distance) / maxLength;
+        }
+
+
+
+
+        function levenshteinDistance(str1, str2) {
+            const matrix = [];
+            
+            for (let i = 0; i <= str2.length; i++) {
+                matrix[i] = [i];
+            }
+            
+            for (let j = 0; j <= str1.length; j++) {
+                matrix[0][j] = j;
+            }
+            
+            for (let i = 1; i <= str2.length; i++) {
+                for (let j = 1; j <= str1.length; j++) {
+                    if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+                        matrix[i][j] = matrix[i - 1][j - 1];
+                    } else {
+                        matrix[i][j] = Math.min(
+                            matrix[i - 1][j - 1] + 1,
+                            matrix[i][j - 1] + 1,
+                            matrix[i - 1][j] + 1
+                        );
+                    }
+                }
+            }
+            
+            return matrix[str2.length][str1.length];
+        }
+
+
+
+
+        function parseDuration(duration) {
+            if (!duration) return null;
+            
+            // If already in milliseconds
+            if (/^\d+$/.test(duration)) {
+                return parseInt(duration);
+            }
+            
+            // If in MM:SS format
+            const timeMatch = duration.match(/^(\d+):(\d+)$/);
+            if (timeMatch) {
+                const minutes = parseInt(timeMatch[1]);
+                const seconds = parseInt(timeMatch[2]);
+                return (minutes * 60 + seconds) * 1000;
+            }
+            
+            return null;
+        }
+
+
+
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (event) => {
+            // Ctrl/Cmd + Enter to search
+            if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+                event.preventDefault();
+                document.getElementById('search-btn').click();
+            }
+            
+            // Escape to clear results
+            if (event.key === 'Escape') {
+                const resultsSection = document.getElementById('results-section');
+                if (!resultsSection.classList.contains('hidden')) {
+                    resultsSection.classList.add('hidden');
+                    mappingResults = [];
+                }
+            }
+        });
+
+
+
+
+        // Auto-save functionality (using sessionStorage alternative)
+        function saveToCache(key, data) {
+            try {
+                // Since localStorage is not available, use a simple in-memory cache
+                if (!window.appCache) {
+                    window.appCache = {};
+                }
+                window.appCache[key] = data;
+            } catch (error) {
+                console.log('Cache not available:', error);
+            }
+        }
+
+
+
+
+        function loadFromCache(key) {
+            try {
+                return window.appCache ? window.appCache[key] : null;
+            } catch (error) {
+                console.log('Cache not available:', error);
+                return null;
+            }
+        }
+
+
+
+
+        // Auto-save form data
+        function autoSaveFormData() {
+            const formData = {
+                trackName: document.getElementById('track-name').value,
+                artistName: document.getElementById('artist-name').value,
+                albumName: document.getElementById('album-name').value,
+                duration: document.getElementById('duration').value,
+                playlistUrl: document.getElementById('playlist-url').value,
+                batchTracks: document.getElementById('batch-tracks').value
+            };
+            saveToCache('formData', formData);
+        }
+
+
+
+
+        // Load saved form data
+        function loadSavedFormData() {
+            const savedData = loadFromCache('formData');
+            if (savedData) {
+                document.getElementById('track-name').value = savedData.trackName || '';
+                document.getElementById('artist-name').value = savedData.artistName || '';
+                document.getElementById('album-name').value = savedData.albumName || '';
+                document.getElementById('duration').value = savedData.duration || '';
+                document.getElementById('playlist-url').value = savedData.playlistUrl || '';
+                document.getElementById('batch-tracks').value = savedData.batchTracks || '';
+            }
+        }
+
+
+
+
+        // Add event listeners for auto-save
+        ['track-name', 'artist-name', 'album-name', 'duration', 'playlist-url', 'batch-tracks'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener('input', autoSaveFormData);
+            }
+        });
+
+
+
+
+        // Load saved data on page load
+        window.addEventListener('load', loadSavedFormData);
+
+
+
+
+        // Export functionality
+        document.getElementById('export-json').addEventListener('click', () => {
+            if (!mappingResults || Object.keys(mappingResults).length === 0) {
+                showError("No results to export. Please run a search first.");
+                return;
+            }
+            
+            const blob = new Blob([JSON.stringify(mappingResults, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'spotify-apple-music-mapping.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+
+
+
+        document.getElementById('export-csv').addEventListener('click', () => {
+            if (!mappingResults || Object.keys(mappingResults).length === 0) {
+                showError("No results to export. Please run a search first.");
+                return;
+            }
+            
+            let csv = 'Spotify Track,Spotify Artist,Spotify Album,Apple Music Track,Apple Music Artist,Apple Music Album,Confidence,Apple Music ID\n';
+            
+            if (mappingResults.matches) {
+                // Single track
+                mappingResults.matches.forEach(match => {
+                    const query = mappingResults.query;
+                    csv += `"${query.name}","${query.artist}","${query.album}","${match.name}","${match.artist}","${match.album}",${match.confidence},"${match.appleId || ''}"\n`;
+                });
+            } else if (mappingResults.results) {
+                // Multiple tracks
+                mappingResults.results.forEach(result => {
+                    const spotify = result.spotify || result.parsed;
+                    const apple = result.appleMusic;
+                    if (apple) {
+                        csv += `"${spotify.name}","${spotify.artist}","${spotify.album || ''}","${apple.name}","${apple.artist}","${apple.album || ''}",${apple.confidence},"${apple.appleId || ''}"\n`;
+                    }
+                });
+            }
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'spotify-apple-music-mapping.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+
+
+
+        document.getElementById('export-txt').addEventListener('click', () => {
+            if (!mappingResults || Object.keys(mappingResults).length === 0) {
+                showError("No results to export. Please run a search first.");
+                return;
+            }
+            
+            let txt = 'Spotify to Apple Music Track Mapping\n';
+            txt += '=====================================\n\n';
+            
+            if (mappingResults.matches) {
+                // Single track
+                mappingResults.matches.forEach(match => {
+                    const query = mappingResults.query;
+                    txt += `Spotify: ${query.name} - ${query.artist}\n`;
+                    txt += `Apple Music: ${match.name} - ${match.artist}\n`;
+                    txt += `Confidence: ${match.confidence}%\n\n`;
+                });
+            } else if (mappingResults.results) {
+                // Multiple tracks
+                mappingResults.results.forEach((result, index) => {
+                    const spotify = result.spotify || result.parsed;
+                    const apple = result.appleMusic;
+                    
+                    txt += `${index + 1}. ${spotify.name} - ${spotify.artist}\n`;
+                    if (apple) {
+                        txt += `   → ${apple.name} - ${apple.artist} (${apple.confidence}% match)\n`;
+                    } else {
+                        txt += `   → No match found\n`;
+                    }
+                    txt += '\n';
+                });
+            }
+            
+            const blob = new Blob([txt], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'spotify-apple-music-mapping.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+    </script>
+</body>
+</html>
